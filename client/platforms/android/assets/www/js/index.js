@@ -1,6 +1,6 @@
 var app = {
-    //server_base_url: '23.83.243.37/bridge',
-    server_base_url: 'localhost/bridge',
+    server_base_url: '23.83.243.37/bridge',
+    //server_base_url: 'localhost/bridge',
     initialize: function() {
         this.bindEvents();
     },
@@ -24,9 +24,12 @@ var app = {
         $('#option-ok').click(function() {
             if ($('#option-local')[0].checked) {
                 app.server_base_url = 'localhost/bridge';
+                console.log('set server to ' + app.server_base_url);
             } else {
                 app.server_base_url = $('#option-server-url').val();
+                console.log('set server to ' + app.server_base_url);
             }
+            $.mobile.back();
         });
     },
     queryList: function() {

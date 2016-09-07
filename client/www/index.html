@@ -44,17 +44,9 @@
 <body>
 <div id="list-page" data-role="page" class="page">
     <div data-role="header">
-        <a href="#option-popup" id="option" data-rel="popup">Option</a>
+        <a href="#option-page" id="option">Option</a>
         <h1>header</h1>
         <button id="update-list" data-inline="true">Update</button>
-        <div data-role="popup" id="option-popup">
-            <div>
-                <label for="server_url">Server URL</label>
-                <input type="text" id="option-server-url">
-                <label><input type="checkbox" id="option-local">local</label>
-                <button id="option-ok">OK</button>
-            </div>
-        </div>
     </div>
     <ul data-role="listview" data-inset="true" id="list">
     </ul>
@@ -66,6 +58,18 @@
         <button id="update-content" data-inline="true">Update</button>
     </div>
     <pre id="content"><pre>
+</div>
+<div id="option-page" data-role="page" class="page">
+    <div data-role="header">
+        <a class="back">Back</a>
+        <h1 id="content-title"></h1>
+    </div>
+    <div>
+        <label for="server_url">Server URL</label>
+        <input type="text" id="option-server-url">
+        <label><input type="checkbox" id="option-local">local</label>
+        <button id="option-ok">OK</button>
+    </div>
 </div>
 </body>
 </html>

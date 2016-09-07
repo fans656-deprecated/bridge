@@ -35,10 +35,12 @@ def all_db_content():
 @app.route('/bridge/query')
 def query():
     name = request.args.get('name', None)
-    print u'query "{}"'.format(name)
     if name is None:
         print 'query all'
-        return all_db_content()
+        conn = getdb()
+        c = conn.cursor()
+        r = list(c.execute('select name from pages'))
+        return json.dumps(r)
     else:
         conn = getdb()
         c = conn.cursor()
