@@ -1,4 +1,5 @@
 from flask import *
+from flask_cors import CORS
 import sqlite3
 
 import json
@@ -6,6 +7,7 @@ import json
 DATABASE = 'data.db'
 
 app = Flask(__name__)
+CORS(app)
 
 def init_db():
     with app.app_context():
@@ -62,4 +64,4 @@ def delete():
     return 'OK'
 
 if __name__ == '__main__':
-    app.run(port=80, debug=True)
+    app.run(host='0.0.0.0', port=80)

@@ -34,6 +34,7 @@ var app = {
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
         app.receivedEvent('deviceready');
+        console.log('hi');
     },
     // Update DOM on a Received Event
     receivedEvent: function(id) {
@@ -49,3 +50,11 @@ var app = {
 };
 
 app.initialize();
+
+$(function() {
+    $.ajax({
+        url: 'http://localhost/bridge/query'
+    }).done(function(data) {
+        console.log(data);
+    });
+});

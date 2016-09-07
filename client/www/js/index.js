@@ -33,19 +33,27 @@ var app = {
     // The scope of 'this' is the event. In order to call the 'receivedEvent'
     // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
-        app.receivedEvent('deviceready');
+        $.ajax({
+            url: 'http://localhost/bridge/query'
+        }).done(function(data) {
+            pages = JSON.parse(data);
+            console.log(pages);
+            var s = '';
+            $.each(pages, function(idx, val) {
+                s += '<li><a>' + val[0] + '  (' + val[1] + ')</a></li>';
+            });
+            var ul = $('#list');
+            ul.empty().html(s).listview('refresh');
+        });
     },
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
-
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
-
-        console.log('Received Event: ' + id);
-    }
 };
 
 app.initialize();
+
+$(function() {
+    if (navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) {
+        document.addEventListener("deviceready", onDeviceReady, false);
+    } else {
+        app.onDeviceReady();
+    }
+});
