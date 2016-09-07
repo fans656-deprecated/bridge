@@ -34,7 +34,23 @@ def all_db_content():
 
 @app.route('/bridge/query')
 def query():
-    return all_db_content()
+    name = request.args.get('name', None)
+    print u'query "{}"'.format(name)
+    if name is None:
+        print 'query all'
+        return all_db_content()
+    else:
+        conn = getdb()
+        c = conn.cursor()
+        r = list(
+            c.execute('select content from pages where name = ?', (name,)))
+        if r:
+            print 'query content ok'
+            return r[0]
+        else:
+            s = u'Error: no name {}'.format(name)
+            print s
+            return s
 
 @app.route('/bridge/insert')
 def insert():

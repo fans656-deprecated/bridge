@@ -1,51 +1,100 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one
- * or more contributor license agreements.  See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership.  The ASF licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License.  You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied.  See the License for the
- * specific language governing permissions and limitations
- * under the License.
- */
 var app = {
-    // Application Constructor
+    //server_base_url: '23.83.243.37/bridge',
+    server_base_url: 'localhost/bridge',
     initialize: function() {
         this.bindEvents();
     },
-    // Bind Event Listeners
-    //
-    // Bind any events that are required on startup. Common events are:
-    // 'load', 'deviceready', 'offline', and 'online'.
     bindEvents: function() {
         document.addEventListener('deviceready', this.onDeviceReady, false);
     },
-    // deviceready Event Handler
-    //
-    // The scope of 'this' is the event. In order to call the 'receivedEvent'
-    // function, we must explicitly call 'app.receivedEvent(...);'
     onDeviceReady: function() {
-        app.receivedEvent('deviceready');
+        console.log('onDeviceReady');
+        app.queryList();
+        $('.back').click(function() {
+            $.mobile.back();
+        });
+        $('#update-list').click(function() {
+            console.log('queryList');
+            app.queryList();
+        });
+        $('#update-content').click(function() {
+            app.queryContent(app.current_page);
+        });
+        $('#option-server-url').val(app.server_base_url);
+        $('#option-ok').click(function() {
+            if ($('#option-local')[0].checked) {
+                app.server_base_url = 'localhost/bridge';
+            } else {
+                app.server_base_url = $('#option-server-url').val();
+            }
+        });
     },
-    // Update DOM on a Received Event
-    receivedEvent: function(id) {
-        var parentElement = document.getElementById(id);
-        var listeningElement = parentElement.querySelector('.listening');
-        var receivedElement = parentElement.querySelector('.received');
+    queryList: function() {
+        $.mobile.loading('show');
+        $.ajax({
+            url: 'http://' + app.server_base_url + '/query'
+        }).done(function(data) {
+            pages = JSON.parse(data);
+            var s = '';
+            var dummy = $('<ul>');
+            $.each(pages, function(idx, val) {
+                var name = val[0];
+                var a = $('<a>', {
+                    text: name,
+                    href: '#content-page',
+                    click: function() {
+                        app.current_page = name;
+                        app.queryContent(name);
+                        console.log('click query ' + name);
+                    },
+                });
+                var li = $('<li>');
+                a.appendTo(li);
+                li.appendTo(dummy);
+            });
+            var ul = $('#list');
+            ul.empty();
+            dummy.children().appendTo(ul);
+            ul.listview('refresh');
 
-        listeningElement.setAttribute('style', 'display:none;');
-        receivedElement.setAttribute('style', 'display:block;');
+            var currentdate = new Date(); 
+            var datetime = "" + currentdate.getDate() + "/"
+                + (currentdate.getMonth()+1)  + "/" 
+                + currentdate.getFullYear() + " @ "  
+                + currentdate.getHours() + ":"  
+                + currentdate.getMinutes() + ":" 
+            + currentdate.getSeconds();
+            var s = 'Updated on ' + datetime
+            console.log(s);
 
-        console.log('Received Event: ' + id);
-    }
+            $.mobile.loading('hide');
+            }).error(function() {
+                $.mobile.loading('hide');
+            });
+    },
+    queryContent: function(name) {
+        $.mobile.loading('show');
+        $('#content').html('');
+        $.ajax({
+            url: 'http://' + app.server_base_url + '/query',
+            data: {name: name},
+        }).done(function(data) {
+            console.log('content:' + data);
+            $('#content').html(data);
+            $.mobile.loading('hide');
+        }).error(function() {
+            $.mobile.loading('hide');
+        });
+    },
 };
 
 app.initialize();
+
+$(function() {
+    if (navigator.userAgent.match(/(iPhone|iPod|iPad|Android|BlackBerry)/)) {
+        document.addEventListener("deviceready", app.onDeviceReady, false);
+        console.log('linsener added');
+    } else {
+        app.onDeviceReady();
+    }
+});
