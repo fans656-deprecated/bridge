@@ -77,13 +77,13 @@ var app = {
     },
     queryContent: function(name) {
         $.mobile.loading('show');
-        $('#content').html('');
+        $('#content').val('');
         $.ajax({
             url: 'http://' + app.server_base_url + '/query',
             data: {name: name},
         }).done(function(data) {
             console.log('content:' + data);
-            $('#content').html(data);
+            $('#content').val(data).refresh();
             $.mobile.loading('hide');
         }).error(function() {
             $.mobile.loading('hide');
