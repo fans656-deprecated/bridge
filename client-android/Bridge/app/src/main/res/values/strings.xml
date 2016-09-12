@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Bridge</string>
+    <string name="edit_message">Enter a message</string>
+    <string name="button_send">Send</string>
+    <string name="show_list">List</string>
+    <string name="option">Option</string>
+    <string name="pref_last_activity">com.fans656.bridge.pref_last_activity</string>
+</resources>

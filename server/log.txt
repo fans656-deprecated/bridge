@@ -1,22 +1,2 @@
-2016-09-07 14:05:22
-这个是用来电脑手机同步文本内容的app的服务端
-flask + restful + sqlite
-目前实现增删改查
-先部署到vps上去，然后写手机cordova app测试下连通性
-
-2016-09-08 20:45:26
-之前在vps上跑起来 python main.py &
-总会有奇怪的“Putty”的输出
-还有奇怪的 Broken Pipe Exception
-还有奇怪的 Bad request syntax ('\x05\x01\x00')
-今天改成 python main.py > stdout.txt 2> stderr.txt &
-然后刚看stderr.txt输出才发现原来是请求里有特殊字符——或者说是字节
-\x05\x01\x00很熟悉——这不是SOCK5的无验证登陆的字节吗？
-然后看源ip，是美国加州的——也许是某个小黑客在用自动化工具扫俺的小站
-实话说 /bridge/query 没做什么安全措施，不过在无公开信息的情况下要猜出这个地址也是不大可能
-呃，github上倒是有代码，如果有心者去看了代码又发现有漏洞，那么就真能攻击，，不过也造不成什么损失
-
-2016-09-09 10:34:03
-https://github.com/pallets/flask/issues/1473
-一早醒来服务器由没响应了，去看进程还在，但是好像啥都不干，收不到http请求
-这里说app.run不该用在生产环境——因为一次只处理一个request
+2016-09-12 21:06:08
+实验下document oriented database, python的tinydb

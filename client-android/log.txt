@@ -1,0 +1,17 @@
+2016-09-09 21:44:04
+用原生android来写，开始只一个空壳却也果然(比cordova)快许多
+目前学会了基本的activity, intent, 实现了http异步get
+做出了menu
+接下来尝试下实现记住last activity
+
+http://stackoverflow.com/questions/2441203/how-to-make-an-android-app-return-to-the-last-open-activity-when-relaunched
+这里的思路跟自己的常识相符，靠persistence + startActivity
+下来看看 SharedPreferences
+
+2016-09-09 22:09:16
+实现了last activity
+想想接下来可以做什么呢？直接做网络部分？
+
+2016-09-12 14:21:19
+https://www.bignerdranch.com/blog/implementing-swipe-to-refresh/
+照着这个教程实现了swipe to refresh

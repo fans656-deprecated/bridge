@@ -32,11 +32,27 @@ var app = {
             $.mobile.back();
         });
     },
-    queryList: function() {
+    query: function(para, timeout, done, error = function() {}, retries = 10) {
+        if (retries == 0) return;
+        this.ajax(para, timeout, done, function() {
+            error();
+            app.query(para, timeout, done, error, retries - 1);
+        });
+    },
+    ajax: function(para, timeout, done, error = function() {}) {
         $.mobile.loading('show');
-        $.ajax({
-            url: 'http://' + app.server_base_url + '/query'
-        }).done(function(data) {
+        para.url = 'http://' + app.server_base_url + '/' + para.url;
+        para.timeout = timeout;
+        $.ajax(para).done(function(data) {
+            done(data);
+            $.mobile.loading('hide');
+        }).error(function() {
+            error();
+            $.mobile.loading('hide');
+        });
+    },
+    queryList: function() {
+        this.query({url: 'query'}, 1000, function(data) {
             pages = JSON.parse(data);
             var s = '';
             var dummy = $('<ul>');
@@ -66,29 +82,20 @@ var app = {
                 + currentdate.getFullYear() + " @ "  
                 + currentdate.getHours() + ":"  
                 + currentdate.getMinutes() + ":" 
-            + currentdate.getSeconds();
+                + currentdate.getSeconds();
             var s = 'Updated on ' + datetime
-            console.log(s);
-
-            $.mobile.loading('hide');
-            }).error(function() {
-                $.mobile.loading('hide');
-            });
-    },
-    queryContent: function(name) {
-        $.mobile.loading('show');
-        $('#content').val('');
-        $.ajax({
-            url: 'http://' + app.server_base_url + '/query',
-            data: {name: name},
-        }).done(function(data) {
-            console.log('content:' + data);
-            $('#content').val(data).refresh();
-            $.mobile.loading('hide');
-        }).error(function() {
-            $.mobile.loading('hide');
+                console.log(s);
         });
     },
+    queryContent: function(name) {
+        $('#content').val('');
+        this.query({
+            url: 'query',
+            data: {name: name},
+        }, 3000, function(data) {
+            $('#content').val(data).textinput('refresh');
+        });
+    }
 };
 
 app.initialize();
