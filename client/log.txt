@@ -19,3 +19,45 @@ https://www.bignerdranch.com/blog/implementing-swipe-to-refresh/
 2016-09-13 09:46:51
 用WebView作为text内容的viewer，把网络通信重构出来
 接下来做下settings
+
+2016-09-13 16:40:46
+java真是神坑...
+一下午就掉进两个里面去：
+
+1.
+服务端传回的JSON会有直接是整型或字符串型的，比如
+    "3"
+作为id，客户端需要把这货转换成一个 String，但是内容是 "3"
+说明白些，服务端传回的是三个字节的字符串 '\"3\"'，而客户端要的是一个字节的 '3'
+鉴于java下的JSON解析只有 JSONObject 和 JSONArray，没有这种直接对应基本类型的解析器，于是想着直接parse int再toString
+Integer.parseInt返回值是int，没有toString
+搜到一个Integer.getInt，结果用起来抛异常，google之，发觉 Integer.getInt 这货根本跟整数解析毫无关系，是另一个不知何作用的函数，，尼玛那你叫这么有歧义的名字...
+当然，自己也有好几个地方不严谨，比如哪怕确实用整数解析的方法，三字节中的那两个双引号也会导致解析失败，所以ad hoc解决办法 s.subString(1, s.length() - 1)，真JB丑
+
+2.
+android的sqlite有个transaction可用，db.beginTransaction()
+完了自动补全里看到还有个db.endTransaction()
+想当然地配对想着这就保证transaction了
+结果死活跟预想效果不同，insert不进去(debug时还猜测是不是需要db singleton什么的)
+后来还是google，发觉尼玛居然还有个 db.setTransactionSuccessful()
+要先调用这个再 endTransaction() 才算完成一次 tran
+只 endTransaction() 的话相当于 abort 掉——rollback了
+我@!#%!$^!%$....
+你敢不敢叫 abortTransaction() ?!
+begin/end 你是想暗示啥？
+
+好吧，吐槽完毕，总结来说自己也是有好几处想当然的地方，然而吧，这些api设计也确有可完善之处
+
+2016-09-14 00:28:44
+基本完成，手动update，其他操作都在本地
+update是完整更新服务器上的数据，同步到本地数据库
+还用Toast加上些visual hint
+用起来挺流畅——pc-watcher那个弃用了，用vim的autocmd暂时只处理sentences.txt一个文件，把send.py里的操作压缩到一个http请求里，时间缩短到400ms左右，差不多完全是TTL的时间了
+
+对了，试下文件大了会怎样
+我擦，3000行，90多K，android端就挂了，找找原因去
+
+恩... 是sync操作时在for循环里头开了太多cursor而没关闭
+
+2016-09-14 00:44:58
+修好了，现存的问题是文件大了update确实就慢了点——要下90K的数据，，所以之后文件大起来后要设计一个增量更新的机制，，现在先不急着弄

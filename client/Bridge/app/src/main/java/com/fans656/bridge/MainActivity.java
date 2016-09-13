@@ -2,19 +2,17 @@ package com.fans656.bridge;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.preference.PreferenceManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.Random;
+import android.widget.Toast;
 
 public class MainActivity extends LastActivity {
     public final static String EXTRA_MESSAGE = "com.fans656.bridge.MESSAGE";
@@ -22,7 +20,6 @@ public class MainActivity extends LastActivity {
     private WebView contentView;
     private String server_url;
     private String cur_id = null;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -34,108 +31,86 @@ public class MainActivity extends LastActivity {
         contentView = (WebView)findViewById(R.id.content_view);
         String id = getIntent().getStringExtra("id");
         if (id != null) {
-            Log.d("bridgec", "onCreate cur_id == " + cur_id);
             cur_id = id;
-            updateContent();
-            Log.d("bridgec", "onCreate after updateContent(), cur_id == " + cur_id);
+            loadContent(id);
         } else {
             cur_id = null;
         }
     }
-
     @Override
     public void onPause() {
         super.onPause();
-        Log.d("bridgec", "onPause save cur_id == " + cur_id);
         SharedPreferences pref = getSharedPreferences("com.fans656.bridge.state", MODE_PRIVATE);
         SharedPreferences.Editor editor = pref.edit();
         editor.putString("cur_id", cur_id);
-        editor.commit();
+        editor.apply();
     }
-
     @Override
     public void onResume() {
         super.onResume();
         if (cur_id == null) {
             SharedPreferences pref = getSharedPreferences("com.fans656.bridge.state", MODE_PRIVATE);
             cur_id = pref.getString("cur_id", cur_id);
-            updateContent();
+            loadContent(cur_id);
         }
-        Log.d("bridgec", "onResume restore cur_id == " + cur_id);
     }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.menu, menu);
         return true;
     }
-
     public void showList(MenuItem item) {
         showList();
     }
-
     public void option(MenuItem item) {
         startActivity(new Intent(this, SettingsActivity.class));
     }
-
     public void showList(View view) {
         showList();
     }
-
     public void showList() {
         Intent intent = new Intent(this, ListActivity.class);
         startActivity(intent);
     }
-
     public void randomSnippet(View view) {
-        final MainActivity that = this;
-        new NetworkTask(server_url)
-                .addParameter("stmt", "random.choice(db.all())['id']")
-                .done(new NetworkTask.Action() {
-                    @Override
-                    public void take(String result) {
-                        if (!result.equals("null")) {
-                            String v = result.substring(1, result.length() - 1);
-                            Log.d("bridgec", v);
-                            cur_id = Integer.parseInt(v) + "";
-                            Log.d("bridgec", "random cur_id == " + cur_id);
-                            updateContent();
-                        }
-                    }
-                }).run();
+        Pair<String, String> snippet = DbHelper.getInstance(this).getRandomSnippet(cur_id);
+        setContent(snippet);
     }
-
     public void nextSnippet(View view) {
-
+        Pair<String, String> snippet = DbHelper.getInstance(this).getNextSnippet(cur_id);
+        setContent(snippet);
     }
-
     public void prevSnippet(View view) {
-
+        Pair<String, String> snippet = DbHelper.getInstance(this).getPrevContent(cur_id);
+        setContent(snippet);
     }
-
-    public void updateContent(View view) {
-        updateContent();
+    public void loadContent(String id) {
+        String content = DbHelper.getInstance(this).getContent(id);
+        setContent(new Pair<>(id, content));
     }
-
-    public void updateContent() {
-        contentView.loadData("", "text/plain", null);
-        String stmt = "db.search(q.id == '" + cur_id + "')[0]";
-        Log.d("bridge", stmt);
-        new NetworkTask(server_url)
-                .addParameter("stmt", stmt)
-                .done(new NetworkTask.Action() {
-                    @Override
-                    public void take(String result) {
-                        Log.d("bridge", "result: " + result);
-                        try {
-                            JSONObject snippet = new JSONObject(result);
-                            String content = snippet.getString("content");
-                            contentView.loadData(content, "text/plain", null);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }).run();
+    public void setContent(Pair<String, String> snippet) {
+        cur_id = snippet.first;
+        String content = snippet.second;
+        String html = "<html>"
+                + "<head><meta charset=\"utf-8\" />"
+                + "<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\" />"
+                + "</head>"
+                + "<body>"
+                + content.replace("\n", "<br>")
+                + "</body>"
+                + "</html>";
+        contentView.loadDataWithBaseURL("file:///android_asset/", html, "text/html", "utf-8", null);
+    }
+    public void sync(View view) {
+        final MainActivity that = this;
+        DbHelper.getInstance(this).sync(server_url, new DbHelper.Action() {
+            @Override
+            public void take() {
+                String content = DbHelper.getInstance(that).getContent(cur_id);
+                setContent(new Pair<>(cur_id, content));
+                Toast.makeText(getApplicationContext(), "Updated", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }

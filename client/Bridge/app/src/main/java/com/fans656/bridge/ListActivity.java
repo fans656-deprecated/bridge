@@ -2,6 +2,8 @@ package com.fans656.bridge;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -13,6 +15,7 @@ import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,11 +31,15 @@ public class ListActivity extends LastActivity {
     ArrayList<Snippet> arr = new ArrayList<>();
 
     class Snippet {
-        public String ctime;
+        public String abstract_;
         public String id;
+        public Snippet(String id, String abstract_) {
+            this.id = id;
+            this.abstract_ = abstract_;
+        }
         @Override
         public String toString() {
-            return ctime;
+            return abstract_;
         }
     }
 
@@ -55,38 +62,32 @@ public class ListActivity extends LastActivity {
                 Intent intent = new Intent(that, MainActivity.class);
                 intent.putExtra("id", snippet.id);
                 startActivity(intent);
+                finish();
             }
         });
         updateList();
     }
 
     public void updateList(View view) {
-        updateList();
+        DbHelper.getInstance(this).sync(server_url, new DbHelper.Action() {
+            @Override
+            public void take() {
+                updateList();
+                Toast.makeText(getApplicationContext(), "Updated", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     public void updateList() {
         arr.clear();
+        SQLiteDatabase db = DbHelper.getInstance(this).getReadableDatabase();
+        Cursor c = db.rawQuery("select id, abstract from snippet", null);
+        while (c.moveToNext()) {
+            arr.add(new Snippet(
+                    c.getString(c.getColumnIndex("id")),
+                    c.getString(c.getColumnIndex("abstract"))));
+        }
+        c.close();
         adapter.notifyDataSetChanged();
-        new NetworkTask(server_url)
-                .addParameter("stmt", "[{'ctime': t['ctime'], 'id': t['id']} for t in db.all()]")
-                .done(new NetworkTask.Action() {
-                    @Override
-                    public void take(String result) {
-                        JSONArray titles = null;
-                        try {
-                            titles = new JSONArray(result);
-                            for (int i = 0; i < titles.length(); ++i) {
-                                JSONObject snippet_json = titles.getJSONObject(i);
-                                Snippet snippet = new Snippet();
-                                snippet.ctime = snippet_json.getString("ctime");
-                                snippet.id = snippet_json.getString("id");
-                                arr.add(snippet);
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        adapter.notifyDataSetChanged();
-                    }
-                }).run();
     }
 }
