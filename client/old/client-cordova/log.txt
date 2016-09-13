@@ -1,0 +1,7 @@
+2016-09-07 10:06:22
+想想英语还是得弄，，于是重拾之前几度的想法：做一个手机-电脑同步(基本上是文本)的app——然后想起之前复试前在家用html-5和cordova做的app
+恩，this approach
+
+2016-09-07 16:32:10
+http://stackoverflow.com/questions/24470166/android-cordova-3-5-0-deviceready-not-firing-after-installing-media-plugin
+deviceReady老是不触发，试了这个答案里，加上script cordova.js果然好了

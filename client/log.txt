@@ -1,7 +1,21 @@
-2016-09-07 10:06:22
-想想英语还是得弄，，于是重拾之前几度的想法：做一个手机-电脑同步(基本上是文本)的app——然后想起之前复试前在家用html-5和cordova做的app
-恩，this approach
+2016-09-09 21:44:04
+用原生android来写，开始只一个空壳却也果然(比cordova)快许多
+目前学会了基本的activity, intent, 实现了http异步get
+做出了menu
+接下来尝试下实现记住last activity
 
-2016-09-07 16:32:10
-http://stackoverflow.com/questions/24470166/android-cordova-3-5-0-deviceready-not-firing-after-installing-media-plugin
-deviceReady老是不触发，试了这个答案里，加上script cordova.js果然好了
+http://stackoverflow.com/questions/2441203/how-to-make-an-android-app-return-to-the-last-open-activity-when-relaunched
+这里的思路跟自己的常识相符，靠persistence + startActivity
+下来看看 SharedPreferences
+
+2016-09-09 22:09:16
+实现了last activity
+想想接下来可以做什么呢？直接做网络部分？
+
+2016-09-12 14:21:19
+https://www.bignerdranch.com/blog/implementing-swipe-to-refresh/
+照着这个教程实现了swipe to refresh
+
+2016-09-13 09:46:51
+用WebView作为text内容的viewer，把网络通信重构出来
+接下来做下settings
